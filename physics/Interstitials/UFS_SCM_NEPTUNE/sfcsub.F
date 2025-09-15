@@ -6261,6 +6261,7 @@
      &,                  gaus,blno, blto, kgds1, kpds4, lbms)
       use machine , only : kind_io8,kind_io4,kind_dbl_prec
       use sfccyc_module
+      use sp_mod
       implicit none
       real (kind=kind_io8) blno,blto,wlon,rnlat,crit,data_max
       integer i,j,ijmax,jgaul,igaul,kpds5,jmax,imax, kgds1, kspla
@@ -6747,6 +6748,7 @@
      &                 wlon,rnlat,rlnout,rltout,gaus,blno, blto)
       use machine , only : kind_io8,kind_io4,kind_dbl_prec
       use sfccyc_module , only : num_threads
+      use sp_mod
       implicit none
       integer i1,i2,j2,ishft,i,jj,j1,jtem,jmxout,imxin,jmxin,imxout,    &
      &        j,iret
@@ -7014,6 +7016,7 @@ cjfe
       subroutine gaulat(gaul,k)
 !
       use machine , only : kind_io8,kind_io4,kind_dbl_prec
+      use sp_mod
       implicit none
       integer n,k
       real (kind=kind_io8) radi

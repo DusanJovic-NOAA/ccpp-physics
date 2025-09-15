@@ -126,8 +126,13 @@ endif()
 # Remove files that need to be compiled without OpenMP from list
 # of files with standard compiler flags, and assign no-OpenMP flags
 if(SCHEMES_OPENMP_OFF)
+if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel" OR ${CMAKE_Fortran_COMPILER_ID} STREQUAL "IntelLLVM")
   SET_PROPERTY(SOURCE ${SCHEMES_OPENMP_OFF}
-               APPEND_STRING PROPERTY COMPILE_FLAGS " ${CMAKE_Fortran_FLAGS_PHYSICS}")
+               APPEND_STRING PROPERTY COMPILE_FLAGS " ${CMAKE_Fortran_FLAGS_PHYSICS} -qno-openmp")
+elseif(${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
+  SET_PROPERTY(SOURCE ${SCHEMES_OPENMP_OFF}
+               APPEND_STRING PROPERTY COMPILE_FLAGS " ${CMAKE_Fortran_FLAGS_PHYSICS} -fno-openmp")
+endif()
   list(REMOVE_ITEM SCHEMES ${SCHEMES_OPENMP_OFF})
 endif()
 
@@ -195,7 +200,7 @@ target_include_directories(ccpp_physics PUBLIC
 
 target_link_libraries(ccpp_physics PRIVATE MPI::MPI_Fortran)
 target_link_libraries(ccpp_physics PUBLIC w3emc::w3emc_d
-                                          sp::sp_d
+                                          ip::ip_d
                                           NetCDF::NetCDF_Fortran
 				             )
 #add FMS for FV3 only
