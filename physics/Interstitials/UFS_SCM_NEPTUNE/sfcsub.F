@@ -8901,4 +8901,86 @@ cjfe
       enddo
       return
       end
+
+      SUBROUTINE SPLAT(IDRT,JMAX,SLAT,WLAT)
+      IMPLICIT NONE
+      INTEGER,PARAMETER:: KD=SELECTED_REAL_KIND(15,45)
+      INTEGER, INTENT(IN) :: IDRT,JMAX
+      REAL(KIND=KD), INTENT(OUT):: SLAT(JMAX),WLAT(JMAX)
+
+      REAL(KIND=KD):: PK(JMAX/2),PKM1(JMAX/2),PKM2(JMAX/2)
+      REAL(KIND=KD):: SLATD(JMAX/2),SP,SPMAX,EPS=10.d0*EPSILON(SP)
+      INTEGER,PARAMETER:: JZ=50
+      REAL(KIND=KD) BZ(JZ)
+      DATA BZ         /2.4048255577d0, 5.5200781103d0,
+     $  8.6537279129d0,11.7915344391d0,14.9309177086d0,18.0710639679d0,
+     $ 21.2116366299d0,24.3524715308d0,27.4934791320d0,30.6346064684d0,
+     $ 33.7758202136d0,36.9170983537d0,40.0584257646d0,43.1997917132d0,
+     $ 46.3411883717d0,49.4826098974d0,52.6240518411d0,55.7655107550d0,
+     $ 58.9069839261d0,62.0484691902d0,65.1899648002d0,68.3314693299d0,
+     $ 71.4729816036d0,74.6145006437d0,77.7560256304d0,80.8975558711d0,
+     $ 84.0390907769d0,87.1806298436d0,90.3221726372d0,93.4637187819d0,
+     $ 96.6052679510d0,99.7468198587d0,102.888374254d0,106.029930916d0,
+     $ 109.171489649d0,112.313050280d0,115.454612653d0,118.596176630d0,
+     $ 121.737742088d0,124.879308913d0,128.020877005d0,131.162446275d0,
+     $ 134.304016638d0,137.445588020d0,140.587160352d0,143.728733573d0,
+     $ 146.870307625d0,150.011882457d0,153.153458019d0,156.295034268d0 /
+      REAL(KIND=KD):: DLT
+      INTEGER:: JHE,JHO
+      REAL(KIND=KD),PARAMETER:: PI=3.14159265358979d0
+      REAL(KIND=KD),PARAMETER:: C=(1.d0-(2.d0/PI)**2)*0.25d0
+      REAL(KIND=KD):: R
+      INTEGER:: I,J,N,JH
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+C  GAUSSIAN LATITUDES
+      IF(IDRT.EQ.4) THEN
+        JH=JMAX/2
+        JHE=(JMAX+1)/2
+        R=1.d0/SQRT((JMAX+0.5d0)**2+C)
+        DO J=1,MIN(JH,JZ)
+          SLATD(J)=COS(BZ(J)*R)
+        ENDDO
+        DO J=JZ+1,JH
+          SLATD(J)=COS((BZ(JZ)+(J-JZ)*PI)*R)
+        ENDDO
+        SPMAX=1.d0
+        DO WHILE(SPMAX.GT.EPS)
+          SPMAX=0.
+          DO J=1,JH
+            PKM1(J)=1.d0
+            PK(J)=SLATD(J)
+          ENDDO
+          DO N=2,JMAX
+            DO J=1,JH
+              PKM2(J)=PKM1(J)
+              PKM1(J)=PK(J)
+              PK(J)=((2*N-1)*SLATD(J)*PKM1(J)-(N-1)*PKM2(J))/N
+            ENDDO
+          ENDDO
+          DO J=1,JH
+            SP=PK(J)*(1.d0-SLATD(J)**2)/(JMAX*(PKM1(J)-SLATD(J)*PK(J)))
+            SLATD(J)=SLATD(J)-SP
+            SPMAX=MAX(SPMAX,ABS(SP))
+          ENDDO
+        ENDDO
+        DO J=1,JH
+          SLAT(J)=SLATD(J)
+          WLAT(J)=(2.d0*(1.d0-SLATD(J)**2))/(JMAX*PKM1(J))**2
+          SLAT(JMAX+1-J)=-SLAT(J)
+          WLAT(JMAX+1-J)=WLAT(J)
+        ENDDO
+        IF(JHE.GT.JH) THEN
+          SLAT(JHE)=0.d0
+          WLAT(JHE)=2./JMAX**2
+          DO N=2,JMAX,2
+            WLAT(JHE)=WLAT(JHE)*N**2/(N-1)**2
+          ENDDO
+        ENDIF
+      ELSE
+        write(0,*)'Error in SPLAT: Unsupported IDRT (grid type) ',IDRT
+        stop
+      ENDIF
+C - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      RETURN
+      END
 !>@}
